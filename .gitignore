@@ -1,0 +1,43 @@
+# Python / MicroPython
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.mpy
+
+# MicroPython firmware artifacts
+*.bin
+*.elf
+*.map
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Environment
+.env
+.env.local
+
+# Serial / device logs
+*.log
+serial_output.txt
+
+# Secret / credential files
+secrets.py
+config.local.py
