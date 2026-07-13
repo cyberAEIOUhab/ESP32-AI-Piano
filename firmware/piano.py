@@ -12,7 +12,9 @@ piano.py - 数字钢琴主调度模块
 本模块只做"调度/编排"，不直接操作GPIO或PWM。
 """
 
-from firmware import buttons, buzzer, leds
+import buttons
+import buzzer
+import leds
 import time
 
 # 音符顺序（用于确定LED颜色：偶数为绿，奇数为红）

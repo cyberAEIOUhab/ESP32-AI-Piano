@@ -10,10 +10,10 @@ import sys
 import time
 
 try:
-    from firmware import piano
+    import piano
 except ImportError as e:
     print("模块导入失败: {}".format(e))
-    print("请确保 firmware/ 目录及所有 .py 文件已上传到ESP32")
+    print("请确保所有 .py 文件已上传到ESP32")
     sys.exit(1)
 
 
