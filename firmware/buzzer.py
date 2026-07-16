@@ -2,7 +2,7 @@
 buzzer.py - 蜂鸣器PWM驱动模块
 ==============================
 通过GPIO25输出PWM信号驱动蜂鸣器（B1），
-提供按音符名播放和立即停止的接口。
+提供按音符名播放（支持八度偏移）和立即停止的接口。
 
 音符频率参考（Hz）：
   do=262, re=294, mi=330, fa=349, so=392, la=440, xi=494
@@ -13,7 +13,7 @@ from machine import Pin, PWM, Timer
 # 蜂鸣器PWM引脚
 _BUZZER_PIN = 25
 
-# 音符名 → 频率（Hz）
+# 音符名 → 基频（Hz），对应八度偏移量 0
 _NOTE_FREQ = {
     'do': 262,
     're': 294,
@@ -24,8 +24,8 @@ _NOTE_FREQ = {
     'xi': 494,
 }
 
-_pwm = None          # PWM对象（惰性初始化）
-_auto_stop_timer = None  # 自动停止定时器
+_pwm = None               # PWM对象（惰性初始化）
+_auto_stop_timer = None   # 自动停止定时器
 
 
 def _init_pwm():
@@ -45,29 +45,38 @@ def _stop_callback(t):
         _pwm.duty(0)
 
 
-def play_note(note_name, duration_ms=300):
+def play_note(note_name, duration_ms=300, octave_offset=0):
     """
-    播放指定音符，持续 duration_ms 毫秒后自动停止（非阻塞）。
+    播放指定音符，支持八度偏移，持续 duration_ms 毫秒后自动停止（非阻塞）。
+
+    频率计算公式：
+      实际频率 = 基频 × (2 ^ octave_offset)
+    例如 octave_offset=+1 时 do 从 262Hz 变为 524Hz；
+          octave_offset=-1 时 do 从 262Hz 变为 131Hz。
 
     实现方式：
-      1. 设置PWM频率为对应音符频率，占空比50%（duty=512）
+      1. 计算实际频率，设置PWM频率，占空比50%（duty=512）
       2. 启动一次性定时器，duration_ms 后将 duty 置零
 
     如果前一个音符尚未停止就调用此函数，会先取消旧的自动停止定时器，
     再设置新音符参数，保证每次只有一个音符在播放。
 
     Args:
-        note_name (str): 音符名，必须是 'do'/'re'/'mi'/'fa'/'so'/'la'/'xi' 之一
-        duration_ms (int): 发声时长（毫秒），默认 300
+        note_name (str):    音符名，必须是 'do'/'re'/'mi'/'fa'/'so'/'la'/'xi' 之一
+        duration_ms (int):  发声时长（毫秒），默认 300
+        octave_offset (int): 八度偏移量，范围 -2 ~ +2，默认 0（无偏移）
 
     Raises:
         ValueError: 传入未识别的音符名
     """
     global _auto_stop_timer
 
-    freq = _NOTE_FREQ.get(note_name)
-    if freq is None:
+    base_freq = _NOTE_FREQ.get(note_name)
+    if base_freq is None:
         raise ValueError("未知音符名: {}".format(note_name))
+
+    # 频率 = 基频 × 2^octave_offset
+    freq = int(base_freq * (2 ** octave_offset))
 
     _init_pwm()
 
@@ -77,7 +86,7 @@ def play_note(note_name, duration_ms=300):
 
     # 设置频率并开启50%占空比
     _pwm.freq(freq)
-    _pwm.duty(50)
+    _pwm.duty(512)
 
     # 启动一次性定时器，到时自动停止
     _auto_stop_timer = Timer(0)
