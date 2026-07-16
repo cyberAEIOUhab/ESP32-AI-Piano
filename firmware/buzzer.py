@@ -77,7 +77,7 @@ def play_note(note_name, duration_ms=300):
 
     # 设置频率并开启50%占空比
     _pwm.freq(freq)
-    _pwm.duty(512)
+    _pwm.duty(50)
 
     # 启动一次性定时器，到时自动停止
     _auto_stop_timer = Timer(0)
