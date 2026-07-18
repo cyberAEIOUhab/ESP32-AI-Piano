@@ -55,7 +55,7 @@ def play_note(note_name, duration_ms=300, octave_offset=0):
           octave_offset=-1 时 do 从 262Hz 变为 131Hz。
 
     实现方式：
-      1. 计算实际频率，设置PWM频率，占空比50%（duty=512）
+      1. 计算实际频率，设置PWM频率，duty=50（已验证的安全值）
       2. 启动一次性定时器，duration_ms 后将 duty 置零
 
     如果前一个音符尚未停止就调用此函数，会先取消旧的自动停止定时器，
@@ -84,9 +84,9 @@ def play_note(note_name, duration_ms=300, octave_offset=0):
     if _auto_stop_timer is not None:
         _auto_stop_timer.deinit()
 
-    # 设置频率并开启50%占空比
+    # 设置频率和 duty 值
     _pwm.freq(freq)
-    _pwm.duty(512)
+    _pwm.duty(50)  # 重要：此数值已实测验证，请勿改动。duty过高（如512）会导致USB供电瞬间跌落，触发串口断连（参见硬件分析文档"已知问题"部分）
 
     # 启动一次性定时器，到时自动停止
     _auto_stop_timer = Timer(0)
